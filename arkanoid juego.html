@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arkanoid con Niveles</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    canvas {
+      background-color: #1e293b;
+      display: block;
+      margin: 0 auto;
+      border-radius: 12px;
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center justify-center p-4">
+  <h1 class="text-3xl font-bold mb-4">🎮 Arkanoid con Niveles</h1>
+  <canvas id="gameCanvas" width="480" height="320"></canvas>
+  <div class="mt-6 bg-gray-800 p-4 rounded-lg shadow-lg max-w-md">
+    <h2 class="text-xl font-semibold mb-2">📋 Instrucciones</h2>
+    <ul class="list-disc list-inside text-sm">
+      <li>Mueve la barra usando las teclas <strong>Izquierda</strong> y <strong>Derecha</strong>.</li>
+      <li>Destruye todos los bloques con la pelota.</li>
+      <li>Pasa de nivel al destruir todos los bloques. La dificultad aumenta.</li>
+      <li>Si la pelota cae, pierdes el juego.</li>
+    </ul>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let ballX = canvas.width / 2;
+    let ballY = canvas.height - 30;
+    let ballRadius = 8;
+    let dx = 2;
+    let dy = -2;
+    let paddleHeight = 10;
+    let paddleWidth = 75;
+    let paddleX = (canvas.width - paddleWidth) / 2;
+    let rightPressed = false;
+    let leftPressed = false;
+    let brickRowCount = 3;
+    let brickColumnCount = 5;
+    let brickWidth = 55;
+    let brickHeight = 20;
+    let brickPadding = 10;
+    let brickOffsetTop = 30;
+    let brickOffsetLeft = 30;
+    let score = 0;
+    let level = 1;
+
+    let bricks = [];
+    function initBricks() {
+      bricks = [];
+      for (let c = 0; c < brickColumnCount; c++) {
+        bricks[c] = [];
+        for (let r = 0; r < brickRowCount; r++) {
+          bricks[c][r] = { x: 0, y: 0, status: 1 };
+        }
+      }
+    }
+    initBricks();
+
+    document.addEventListener('keydown', keyDownHandler, false);
+    document.addEventListener('keyup', keyUpHandler, false);
+
+    function keyDownHandler(e) {
+      if (e.key === 'Right' || e.key === 'ArrowRight') {
+        rightPressed = true;
+      } else if (e.key === 'Left' || e.key === 'ArrowLeft') {
+        leftPressed = true;
+      }
+    }
+
+    function keyUpHandler(e) {
+      if (e.key === 'Right' || e.key === 'ArrowRight') {
+        rightPressed = false;
+      } else if (e.key === 'Left' || e.key === 'ArrowLeft') {
+        leftPressed = false;
+      }
+    }
+
+    function collisionDetection() {
+      for (let c = 0; c < brickColumnCount; c++) {
+        for (let r = 0; r < brickRowCount; r++) {
+          let b = bricks[c][r];
+          if (b.status === 1) {
+            if (ballX > b.x && ballX < b.x + brickWidth && ballY > b.y && ballY < b.y + brickHeight) {
+              dy = -dy;
+              b.status = 0;
+              score++;
+              if (score === brickRowCount * brickColumnCount) {
+                nextLevel();
+              }
+            }
+          }
+        }
+      }
+    }
+
+    function nextLevel() {
+      alert(`¡Nivel ${level} superado! 🎉`);
+      level++;
+      brickRowCount++;
+      dx += 0.5;
+      dy -= 0.5;
+      score = 0;
+      initBricks();
+      ballX = canvas.width / 2;
+      ballY = canvas.height - 30;
+      paddleX = (canvas.width - paddleWidth) / 2;
+    }
+
+    function drawBall() {
+      ctx.beginPath();
+      ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+      ctx.fillStyle = '#38bdf8';
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    function drawPaddle() {
+      ctx.beginPath();
+      ctx.rect(paddleX, canvas.height - paddleHeight - 10, paddleWidth, paddleHeight);
+      ctx.fillStyle = '#f97316';
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    function drawBricks() {
+      for (let c = 0; c < brickColumnCount; c++) {
+        for (let r = 0; r < brickRowCount; r++) {
+          if (bricks[c][r].status === 1) {
+            let brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
+            let brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
+            bricks[c][r].x = brickX;
+            bricks[c][r].y = brickY;
+            ctx.beginPath();
+            ctx.rect(brickX, brickY, brickWidth, brickHeight);
+            ctx.fillStyle = `hsl(${r * 60}, 70%, 50%)`;
+            ctx.fill();
+            ctx.closePath();
+          }
+        }
+      }
+    }
+
+    function drawScoreAndLevel() {
+      ctx.font = '16px Arial';
+      ctx.fillStyle = '#fff';
+      ctx.fillText(`Puntaje: ${score} | Nivel: ${level}`, 8, 20);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawBricks();
+      drawBall();
+      drawPaddle();
+      drawScoreAndLevel();
+      collisionDetection();
+
+      if (ballX + dx > canvas.width - ballRadius || ballX + dx < ballRadius) {
+        dx = -dx;
+      }
+      if (ballY + dy < ballRadius) {
+        dy = -dy;
+      } else if (ballY + dy > canvas.height - ballRadius) {
+        if (ballX > paddleX && ballX < paddleX + paddleWidth) {
+          dy = -dy;
+        } else {
+          alert('¡Fin del juego! 😢');
+          document.location.reload();
+        }
+      }
+
+      ballX += dx;
+      ballY += dy;
+
+      if (rightPressed && paddleX < canvas.width - paddleWidth) {
+        paddleX += 7;
+      } else if (leftPressed && paddleX > 0) {
+        paddleX -= 7;
+      }
+
+      requestAnimationFrame(draw);
+    }
+
+    draw();
+  </script>
+</body>
+</html>
