@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Western Shooter Game</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-b from-yellow-200 to-orange-500 min-h-screen flex flex-col items-center justify-center">
+  <div class="max-w-2xl w-full bg-white shadow-2xl rounded-2xl p-6">
+    <h1 class="text-3xl font-bold text-center mb-4">🎯 Western Shooter</h1>
+    <div id="instructions" class="mb-4 text-gray-700">
+      <h2 class="text-xl font-semibold">Instrucciones</h2>
+      <ul class="list-disc pl-5">
+        <li>Haz clic en los bandidos para eliminarlos.</li>
+        <li>Evita que los enemigos lleguen hasta ti.</li>
+        <li>Cada enemigo eliminado suma puntos.</li>
+        <li>¡El juego se vuelve más rápido con el tiempo!</li>
+      </ul>
+    </div>
+
+    <div id="gameArea" class="relative bg-green-100 w-full h-96 rounded-lg overflow-hidden">
+      <p class="absolute top-2 left-2 font-bold text-lg">Puntos: <span id="score">0</span></p>
+    </div>
+    <button id="startButton" class="mt-4 w-full py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700">Iniciar Juego</button>
+  </div>
+
+  <script>
+    const gameArea = document.getElementById('gameArea');
+    const scoreDisplay = document.getElementById('score');
+    const startButton = document.getElementById('startButton');
+    let score = 0;
+    let gameInterval;
+
+    function createBandit() {
+      const bandit = document.createElement('div');
+      bandit.classList.add('bandit');
+      bandit.className = "w-10 h-10 bg-red-600 rounded-full absolute cursor-pointer shadow-lg border-4 border-black";
+      bandit.style.top = Math.random() * (gameArea.clientHeight - 40) + 'px';
+      bandit.style.left = Math.random() * (gameArea.clientWidth - 40) + 'px';
+
+      bandit.addEventListener('click', () => {
+        score++;
+        scoreDisplay.textContent = score;
+        bandit.remove();
+      });
+
+      gameArea.appendChild(bandit);
+      setTimeout(() => {
+        if (bandit.parentElement) {
+          bandit.remove();
+        }
+      }, 2000);
+    }
+
+    function startGame() {
+      score = 0;
+      scoreDisplay.textContent = score;
+      gameInterval = setInterval(createBandit, 1000);
+      startButton.disabled = true;
+      startButton.classList.add('opacity-50', 'cursor-not-allowed');
+      setTimeout(endGame, 30000); // Juego dura 30 segundos
+    }
+
+    function endGame() {
+      clearInterval(gameInterval);
+      alert(`¡Juego terminado! Tu puntaje fue: ${score}`);
+      startButton.disabled = false;
+      startButton.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+
+    startButton.addEventListener('click', startGame);
+  </script>
+</body>
+</html>

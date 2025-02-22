@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generador de Contraseñas Seguras</title>
+  <!-- Carga de Tailwind CSS desde CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+  <!-- Contenedor principal de la aplicación -->
+  <div class="bg-white shadow-xl rounded-2xl p-8 max-w-md w-full">
+    <h1 class="text-2xl font-bold text-center mb-4">Generador de Contraseñas</h1>
+    <!-- Sección de instrucciones -->
+    <div class="mb-4 text-sm text-gray-700">
+      <p>1. Define la longitud de tu contraseña.</p>
+      <p>2. Ajusta la complejidad con el control deslizante.</p>
+      <p>3. Selecciona los tipos de caracteres a incluir.</p>
+      <p>4. Haz clic en "Generar Contraseña".</p>
+      <p>5. Copia la contraseña haciendo clic en el botón de copiar.</p>
+    </div>
+    <div class="space-y-4">
+      <!-- Campo para definir la longitud de la contraseña -->
+      <label class="block">
+        Longitud de la contraseña:
+        <input type="number" id="length" min="4" max="50" value="12" class="mt-1 w-full p-2 border rounded">
+      </label>
+      <!-- Slicer de complejidad -->
+      <label class="block">
+        Nivel de complejidad:
+        <input type="range" id="complexity" min="1" max="3" value="2" class="mt-1 w-full">
+        <div id="complexity-label" class="text-center mt-1 font-medium">Media</div>
+      </label>
+      <!-- Opciones para seleccionar los tipos de caracteres -->
+      <div class="space-y-2">
+        <label class="flex items-center">
+          <input type="checkbox" id="uppercase" checked class="mr-2"> Incluir mayúsculas
+        </label>
+        <label class="flex items-center">
+          <input type="checkbox" id="lowercase" checked class="mr-2"> Incluir minúsculas
+        </label>
+        <label class="flex items-center">
+          <input type="checkbox" id="numbers" checked class="mr-2"> Incluir números
+        </label>
+        <label class="flex items-center">
+          <input type="checkbox" id="symbols" checked class="mr-2"> Incluir símbolos
+        </label>
+      </div>
+      <!-- Botón para generar la contraseña -->
+      <button id="generate" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">Generar Contraseña</button>
+      <!-- Campo donde se muestra la contraseña generada y botón para copiar -->
+      <div class="mt-4">
+        <input type="text" id="password" readonly class="w-full p-2 border rounded" placeholder="Tu contraseña aparecerá aquí">
+        <button id="copy" class="w-full mt-2 bg-green-500 text-white p-2 rounded hover:bg-green-600">Copiar</button>
+      </div>
+      <!-- Sección que muestra la fortaleza de la contraseña -->
+      <div class="mt-2 text-center">
+        Fortaleza: <span id="strength" class="font-bold">-</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Actualiza la etiqueta del nivel de complejidad
+    document.getElementById('complexity').addEventListener('input', (event) => {
+      const value = event.target.value;
+      const label = document.getElementById('complexity-label');
+      if (value == 1) label.textContent = 'Baja';
+      else if (value == 2) label.textContent = 'Media';
+      else label.textContent = 'Alta';
+    });
+
+    // Función para generar la contraseña según las opciones seleccionadas
+    function generatePassword(length, options, complexity) {
+      const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+      const numbers = '0123456789';
+      const symbols = '!@#$%^&*()_+[]{}|;:,.<>?';
+      let characters = '';
+
+      // Ajusta los caracteres según el nivel de complejidad
+      if (complexity >= 1) characters += lowercase;
+      if (complexity >= 2) characters += uppercase + numbers;
+      if (complexity == 3) characters += symbols;
+
+      // Si no hay opciones seleccionadas, retorna una cadena vacía
+      if (characters === '') return '';
+
+      let password = '';
+      for (let i = 0; i < length; i++) {
+        const randomIndex = Math.floor(Math.random() * characters.length);
+        password += characters[randomIndex];
+      }
+      return password;
+    }
+
+    // Función para evaluar la fortaleza de la contraseña
+    function evaluateStrength(password) {
+      let strength = 0;
+      if (/[A-Z]/.test(password)) strength++;
+      if (/[a-z]/.test(password)) strength++;
+      if (/[0-9]/.test(password)) strength++;
+      if (/[^A-Za-z0-9]/.test(password)) strength++;
+
+      if (password.length >= 12 && strength === 4) return 'Fuerte';
+      if (password.length >= 8 && strength >= 3) return 'Media';
+      return 'Débil';
+    }
+
+    // Evento para generar la contraseña al hacer clic
+    document.getElementById('generate').addEventListener('click', () => {
+      const length = parseInt(document.getElementById('length').value);
+      const complexity = parseInt(document.getElementById('complexity').value);
+      const options = {
+        uppercase: document.getElementById('uppercase').checked,
+        lowercase: document.getElementById('lowercase').checked,
+        numbers: document.getElementById('numbers').checked,
+        symbols: document.getElementById('symbols').checked
+      };
+      // Genera y muestra la contraseña
+      const password = generatePassword(length, options, complexity);
+      document.getElementById('password').value = password;
+      // Muestra la fortaleza de la contraseña
+      document.getElementById('strength').textContent = evaluateStrength(password);
+    });
+
+    // Evento para copiar la contraseña al portapapeles
+    document.getElementById('copy').addEventListener('click', () => {
+      const passwordField = document.getElementById('password');
+      if (passwordField.value !== '') {
+        passwordField.select();
+        document.execCommand('copy');
+        alert('Contraseña copiada al portapapeles');
+      }
+    });
+  </script>
+</body>
+</html>
